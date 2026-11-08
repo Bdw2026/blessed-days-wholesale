@@ -34,7 +34,12 @@ function companyFields(body, base) {
   ['company', 'licenseNo', 'licenseExpiry', 'trn', 'address', 'contact', 'phone'].forEach(k => { if (k in body) c[k] = text(body[k], 200); });
   if ('bizType' in body) c.bizType = Core.BIZ_TYPES.includes(body.bizType) ? body.bizType : 'Other';
   if ('emirate' in body) c.emirate = Core.EMIRATES.includes(body.emirate) ? body.emirate : Core.EMIRATES[0];
+  if ('salesChannels' in body) c.salesChannels = Core.SALES_CHANNELS.filter(ch => String(body.salesChannels).split('|').includes(ch));
+  if ('salesOther' in body) c.salesOther = text(body.salesOther, 200);
   req.forEach(k => { if (!c[k]) throw bad('Fill in every required field.'); });
+  if (!c.salesChannels || !c.salesChannels.length) throw bad('Tick at least one sales channel.');
+  if (!c.salesChannels.includes('Others')) c.salesOther = '';
+  else if (!c.salesOther) throw bad('Tell us which other sales channels you use.');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(c.licenseExpiry) || isNaN(new Date(c.licenseExpiry))) throw bad('Enter the licence expiry date.');
   return c;
 }
@@ -66,7 +71,7 @@ router.post('/auth/register', limit(10, 60), docFields, wrap((req, res) => {
   const token = auth.issueToken(userId, 'verify', 72);
   mail.send(email, 'We received your trade account application', ['Thank you for applying for a trade account for ' + c.company + '. We review applications within one working day and will email you the result.', 'Please confirm this email address so we can reach you.'],
     {label: 'Confirm email address', url: require('./config').appUrl + '/api/auth/verify?token=' + token});
-  mail.sendStaff('New trade account application: ' + c.company, [c.company + ' (' + c.bizType + ', ' + c.emirate + ') applied for a trade account. Check the trade licence and approve or decline.'], {label: 'Review application', url: mail.url('admin-customer-' + id)});
+  mail.sendStaff('New trade account application: ' + c.company, [c.company + ' (' + c.bizType + ', ' + c.emirate + '; sells through ' + c.salesChannels.join(', ') + (c.salesOther ? ': ' + c.salesOther : '') + ') applied for a trade account. Check the trade licence and approve or decline.'], {label: 'Review application', url: mail.url('admin-customer-' + id)});
   req.user = store.db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
   res.status(201).json(session(req));
 }));

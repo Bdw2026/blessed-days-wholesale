@@ -18,6 +18,7 @@
   };
   const CUST_STATUS = {pending:{l:'Pending review', tone:'warn'}, info:{l:'More info requested', tone:'info'}, approved:{l:'Approved', tone:'ok'}, rejected:{l:'Declined', tone:'bad'}, suspended:{l:'Suspended', tone:'bad'}};
   const BIZ_TYPES = ['Pharmacy', 'Beauty salon or spa', 'Retail store', 'Supermarket or grocery', 'Online store', 'Distributor or reseller', 'Hotel or hospitality', 'Other'];
+  const SALES_CHANNELS = ['Physical stores', 'Own online store', 'E-commerce platforms', 'Others'];
   const EMIRATES = ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah', 'Fujairah', 'Umm Al Quwain', 'Outside UAE (GCC)', 'Outside UAE (other)'];
   const DEFAULT_SETTINGS = {
     company:'Blessed Days Cosmetics', tagline:'UAE wholesale supply of Cliganic products', vatPct:5, depositPct:20, minOrder:1500, leadDays:3,
@@ -48,5 +49,5 @@
     if (q % p.casePack) { const up = Math.ceil(q / p.casePack) * p.casePack; issues.push('Rounded up to full cases (' + up + ')'); q = up; }
     return {qty:q, issues};
   }
-  return {CATS, STATUS, CUST_STATUS, BIZ_TYPES, EMIRATES, DEFAULT_SETTINGS, r2, money, norm, fullName, priceFor, orderTotals, checkQty};
+  return {CATS, STATUS, CUST_STATUS, BIZ_TYPES, SALES_CHANNELS, EMIRATES, DEFAULT_SETTINGS, r2, money, norm, fullName, priceFor, orderTotals, checkQty};
 });
