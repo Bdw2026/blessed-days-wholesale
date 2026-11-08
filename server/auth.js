@@ -91,6 +91,7 @@ function cleanup() { db.prepare('DELETE FROM sessions WHERE expires_at < ?').run
 /* First start: create the first staff account from ADMIN_EMAIL / ADMIN_PASSWORD when no staff account exists. */
 function ensureAdmin() {
   if (db.prepare("SELECT COUNT(*) n FROM users WHERE role = 'admin'").get().n) return true;
+  if (config.adminEmail && findUser(config.adminEmail)) { console.warn('\nADMIN_EMAIL (' + config.adminEmail + ') is already used by a customer account. Set ADMIN_EMAIL to a different email and restart.'); return false; }
   if (config.adminEmail && !passwordProblem(config.adminPassword)) { createUser({email: config.adminEmail, password: config.adminPassword, role: 'admin', name: 'Administrator', verified: true}); return true; }
   return false;
 }
