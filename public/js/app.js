@@ -51,7 +51,7 @@ function render(){
   if (keep){ const el = $(keep.id); if (el){ el.focus({preventScroll:true}); try { if (keep.s != null) el.setSelectionRange(keep.s, keep.e); } catch (e) { /* not a text field */ } } }
 }
 function form(fields, files){ const f = new FormData(); Object.keys(fields).forEach(k => f.append(k, fields[k] == null ? '' : fields[k])); Object.keys(files || {}).forEach(k => { if (files[k]) f.append(k, files[k], files[k].name); }); return f; }
-const regValues = () => { const o = {}; ['company', 'licenseNo', 'licenseExpiry', 'trn', 'bizType', 'emirate', 'address', 'contact', 'phone'].forEach(k => { if ('rg-' + k in UI.drafts) o[k] = val('rg-' + k); }); return o; };
+const regValues = () => { const o = {salesChannels: SALES_CHANNELS.filter((ch, i) => { const el = document.getElementById('f-rg-ch-' + i); return el ? el.checked : !!dv('rg-ch-' + i, false); }).join('|'), salesOther: val('rg-salesOther')}; ['company', 'licenseNo', 'licenseExpiry', 'trn', 'bizType', 'emirate', 'address', 'contact', 'phone'].forEach(k => { if ('rg-' + k in UI.drafts) o[k] = val('rg-' + k); }); return o; };
 const regFiles = () => ({license:UI.files['rg-license'], vat:UI.files['rg-vat'], idDoc:UI.files['rg-idDoc']});
 async function afterSignIn(d){ applySession(d); clearDrafts('si-'); clearDrafts('rg-'); await refresh(); go(isAdmin() ? 'admin' : 'home'); }
 
@@ -110,6 +110,7 @@ const FORMS = {
   async register(){
     if (dv('rg-password', '') !== dv('rg-password2', '')) return toast('The two passwords do not match.');
     if (!UI.files['rg-license']) return toast('Attach your trade licence to continue.');
+    if (!regValues().salesChannels) return toast('Tick at least one sales channel.');
     const d = await api('POST', '/api/auth/register', form(Object.assign({bizType:BIZ_TYPES[0], emirate:EMIRATES[0]}, regValues(), {email:val('rg-email'), password:dv('rg-password', ''), agree:dv('rg-agree', false) ? 'yes' : ''}), regFiles()));
     toast('Application submitted'); await afterSignIn(d);
   },
@@ -154,6 +155,7 @@ document.addEventListener('submit', e => {
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.dataset.draft) UI.drafts[t.dataset.draft] = t.type === 'checkbox' ? t.checked : t.value;
+  if (t.id === 'f-rg-ch-' + (SALES_CHANNELS.length - 1)){ const w = document.getElementById('rg-other-wrap'); if (w) w.hidden = !t.checked; }
   if (t.id === 'search'){ UI.q = t.value; render(); }
 });
 document.addEventListener('change', async e => {

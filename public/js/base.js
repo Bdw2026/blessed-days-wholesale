@@ -1,6 +1,6 @@
 'use strict';
 /* State, server calls and small helpers shared by every screen. */
-const {CATS, STATUS, CUST_STATUS, BIZ_TYPES, EMIRATES, r2, money, norm, fullName, orderTotals, checkQty} = Core;
+const {CATS, STATUS, CUST_STATUS, BIZ_TYPES, SALES_CHANNELS, EMIRATES, r2, money, norm, fullName, orderTotals, checkQty} = Core;
 const S = {settings:{counts:{}}, products:{}, customers:{}, orders:{}, staff:[], outbox:[], emailReady:true};
 const UI = {user:null, customer:null, route:'home', cart:{}, drafts:{}, files:{}, cat:'all', q:'', view:'grid', filter:'all', modal:null, sheet:null, importPreview:null, loaded:false};
 const LS = {
@@ -64,6 +64,12 @@ let toastT;
 function toast(msg){ const t = $('toast'); if (!t) return; t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 4200); }
 const dv = (k, d) => (k in UI.drafts ? UI.drafts[k] : (d == null ? '' : d));
 const val = k => String(dv(k, '')).trim();
+/* Sales channel tick boxes on the application; "Others" opens a text box. */
+const chOn = (c, i) => !!dv('rg-ch-' + i, ((c && c.salesChannels) || []).indexOf(SALES_CHANNELS[i]) >= 0);
+const channelsF = c => '<fieldset class="f channels"><legend>Sales channels <span class="hint">tick all that apply</span></legend><div class="row">' +
+  SALES_CHANNELS.map((ch, i) => '<label class="row"><input type="checkbox" id="f-rg-ch-' + i + '" data-draft="rg-ch-' + i + '"' + (chOn(c, i) ? ' checked' : '') + '> ' + h(ch) + '</label>').join('') + '</div>' +
+  '<label class="f" id="rg-other-wrap"' + (chOn(c, SALES_CHANNELS.length - 1) ? '' : ' hidden') + '>Which other channels? <input id="f-rg-salesOther" data-draft="rg-salesOther" value="' + h(dv('rg-salesOther', (c && c.salesOther) || '')) + '" maxlength="200" placeholder="For example Instagram, clinics, corporate gifting"></label></fieldset>';
+const channelsText = c => (c.salesChannels && c.salesChannels.length ? c.salesChannels.map(ch => ch === 'Others' && c.salesOther ? 'Others: ' + c.salesOther : ch).join(', ') : 'Not provided');
 const field = (label, key, value, attrs, hint) => '<label class="f">' + h(label) + (hint ? ' <span class="hint">' + h(hint) + '</span>' : '') +
   '<input id="f-' + key + '" data-draft="' + key + '" value="' + h(dv(key, value)) + '" ' + (attrs || '') + '></label>';
 const selectF = (label, key, value, opts) => '<label class="f">' + h(label) + '<select id="f-' + key + '" data-draft="' + key + '">' +

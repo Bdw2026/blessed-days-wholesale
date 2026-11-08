@@ -29,7 +29,7 @@ function client() {
 }
 function regForm(email, company) {
   const f = new FormData();
-  Object.entries({email, password: 'buyer-pass-123', agree: 'yes', company, licenseNo: 'TL-1', licenseExpiry: '2028-01-31', bizType: 'Pharmacy', emirate: 'Dubai', address: 'Al Quoz', contact: 'A Buyer', phone: '+971500000001'}).forEach(([k, v]) => f.append(k, v));
+  Object.entries({email, password: 'buyer-pass-123', agree: 'yes', company, licenseNo: 'TL-1', licenseExpiry: '2028-01-31', bizType: 'Pharmacy', emirate: 'Dubai', address: 'Al Quoz', contact: 'A Buyer', phone: '+971500000001', salesChannels: 'Physical stores|Others', salesOther: 'Instagram'}).forEach(([k, v]) => f.append(k, v));
   f.append('license', new Blob([PNG], {type: 'image/png'}), 'licence.png');
   return f;
 }
@@ -63,6 +63,11 @@ test('full order flow with access rules', async () => {
   assert.equal((await anon.form('/api/auth/register', badForm)).status, 400);
   const ra = await a.form('/api/auth/register', regForm('a@test.local', 'Alpha Trading LLC'));
   assert.equal(ra.status, 201); assert.equal(ra.body.customer.status, 'pending');
+  assert.deepEqual(ra.body.customer.salesChannels, ['Physical stores', 'Others']); assert.equal(ra.body.customer.salesOther, 'Instagram');
+  const noCh = regForm('n@test.local', 'No Channels'); noCh.set('salesChannels', '');
+  assert.equal((await anon.form('/api/auth/register', noCh)).status, 400);
+  const noOther = regForm('o@test.local', 'No Other'); noOther.set('salesOther', '');
+  assert.equal((await anon.form('/api/auth/register', noOther)).status, 400);
   assert.equal((await b.form('/api/auth/register', regForm('b@test.local', 'Beta Stores'))).status, 201);
   assert.equal((await anon.form('/api/auth/register', regForm('a@test.local', 'Dup'))).status, 409);
 
